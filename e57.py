@@ -9,10 +9,13 @@ import csv
 # E57 file path
 e57 = pye57.E57("cloud_0.e57")
 
-# open CSV file to write
+# open CSV files to write
 f = open("skyboxes.csv", "w", newline="", encoding="utf-8")
-writer = csv.writer(f)
-writer.writerow(["Name", "j", "k", "pos X", "pos Y", "pos Z", "rot X", "rot Y", "rot Z", "rot W"])  # Header
+csvSkyboxes = csv.writer(f)
+csvSkyboxes.writerow(["Name", "j", "k", "pos X", "pos Y", "pos Z", "rot X", "rot Y", "rot Z", "rot W"])  # Header
+f1 = open("panoramas.csv", "w", newline="", encoding="utf-8")
+csvPanoramas = csv.writer(f1)
+csvPanoramas.writerow(["Name", "j", "pos X", "pos Y", "pos Z", "rot X", "rot Y", "rot Z", "rot W"])  # Header
 
 # Directories
 skyboxes = "skyboxes"
@@ -31,7 +34,7 @@ root = e57.image_file.root()
 images2d = root["images2D"]
 
 # Loop through each panorama (6 images per panorama)
-for j in range(6):
+for j in range(images2d.childCount() // 6):
 
     # Dictionary to hold the 6 faces of the cubemap
     faces = {}
@@ -64,10 +67,10 @@ for j in range(6):
             img.save(out_path)
             print(f"Saved {out_path}")
 
-            # write metadata to CSV
+            # write metadata to skyboxes CSV 
             position = img_node["pose"]["translation"]
             rotation = img_node["pose"]["rotation"]
-            writer.writerow([   name, j, k,
+            csvSkyboxes.writerow([   name, j, k,
                 position['x'].value(), position['y'].value(), position['z'].value(),
                 rotation['x'].value(), rotation['y'].value(), rotation['z'].value(), rotation['w'].value()
             ])
@@ -84,6 +87,15 @@ for j in range(6):
     equirect = py360convert.c2e(faces, h, w, cube_format='dict')
     Image.fromarray(equirect.astype('uint8')).save(out_path)
     print(f"--> Saved {out_path}")
+
+    # write metadata to skyboxes CSV
+    name = f"pano{j:02d}"
+    position = images2d[j * 6]["pose"]["translation"]
+    rotation = images2d[j * 6 + 1]["pose"]["rotation"]
+    csvPanoramas.writerow([   name, j,  
+        position['x'].value(), position['y'].value(), position['z'].value(),
+        rotation['x'].value(), rotation['y'].value(), rotation['z'].value(), rotation['w'].value()
+    ])
 
 # Close the CSV file
 f.close()
