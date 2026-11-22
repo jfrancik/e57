@@ -89,9 +89,11 @@ for j in range(images2d.childCount() // 6):
     print(f"--> Saved {out_path}")
 
     # write metadata to skyboxes CSV
+    # position should normally be shared by all 6 images, so we can just take the first image for the panorama
+    # rotation will be taken from the last image, which represents down direction in the cubemap, which is usually the most relevant for equirectangular images
     name = f"pano{j:02d}"
     position = images2d[j * 6]["pose"]["translation"]
-    rotation = images2d[j * 6 + 1]["pose"]["rotation"]
+    rotation = images2d[j * 6 + 5]["pose"]["rotation"]
     csvPanoramas.writerow([   name, j,  
         position['x'].value(), position['y'].value(), position['z'].value(),
         rotation['x'].value(), rotation['y'].value(), rotation['z'].value(), rotation['w'].value()
